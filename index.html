@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sagar Royal Clock - AM/PM IST</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FFD700">
+    
+    <style>
+        :root {
+            --clock-bg: radial-gradient(circle, #FFD700, #b8860b);
+            --roman-color: #E0E0E0; 
+            --charcoal: #1a1a1a;
+            --body-bg: #ffffff;
+            --hour-color: #111;
+            --min-color: #333;
+            --sec-color: #e60000;
+        }
+        
+        body {
+            background-color: var(--body-bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; margin: 0;
+            font-family: 'Times New Roman', serif;
+            transition: all 0.5s ease;
+        }
+
+        .clock-case {
+            width: 320px; height: 320px;
+            background: var(--clock-bg);
+            border: 10px solid rgba(0,0,0,0.1);
+            border-radius: 50%; position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 0 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px; transition: background 0.5s ease;
+        }
+
+        .branding { position: absolute; width: 100%; text-align: center; top: 60px; z-index: 2; }
+        .crown { font-size: 30px; display: block; margin-bottom: -5px; }
+        .brand-name { font-size: 30px; font-weight: 900; color: var(--charcoal); letter-spacing: 6px; text-transform: uppercase; margin: 0; }
+
+        .sub-brand {
+            position: absolute; width: 100%; text-align: center;
+            bottom: 75px; font-size: 11px; letter-spacing: 5px;
+            color: var(--charcoal); font-weight: bold; z-index: 2;
+        }
+
+        .roman-number {
+            position: absolute; width: 100%; height: 100%; text-align: center;
+            font-size: 26px; font-weight: bold; color: var(--roman-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
+            padding: 12px; box-sizing: border-box; transition: color 0.5s ease;
+        }
+
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; transform: translateX(-50%); border-radius: 10px; transition: background 0.5s ease; }
+        .hour-hand { width: 9px; height: 70px; background: var(--hour-color); z-index: 3; }
+        .min-hand { width: 6px; height: 105px; background: var(--min-color); z-index: 2; }
+        .sec-hand { width: 2px; height: 120px; background: var(--sec-color); z-index: 1; }
+        
+        .center-pin {
+            position: absolute; top: 50%; left: 50%; width: 16px; height: 16px;
+            background: var(--hour-color); border-radius: 50%; transform: translate(-50%, -50%);
+            z-index: 10; border: 2px solid #fff;
+        }
+
+        .digital-box { text-align: center; padding: 10px; margin-bottom: 15px; }
+        #digital-time { font-size: 34px; font-weight: bold; color: #000; margin: 0; font-family: 'Courier New', monospace; }
+        #date-display { font-size: 14px; color: #444; margin-top: 5px; font-weight: bold; text-transform: uppercase; }
+
+        .theme-container { display: flex; gap: 15px; justify-content: center; }
+        .theme-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; transition: 0.2s; }
+    </style>
+</head>
+<body>
+
+    <div class="clock-case" id="clock-dial">
+        <div class="center-pin"></div>
+        <div class="branding">
+            <span class="crown">👑</span>
+            <p class="brand-name">SAGAR</p>
+        </div>
+        <p class="sub-brand">QUARTZ</p>
+        <div id="roman-container"></div>
+        <div id="hour" class="hand hour-hand"></div>
+        <div id="minute" class="hand min-hand"></div>
+        <div id="second" class="hand sec-hand"></div>
+    </div>
+
+    <div class="digital-box">
+        <p id="digital-time">00:00:00 AM</p>
+        <p id="date-display">LOADING...</p>
+    </div>
+
+    <div class="theme-container">
+        <div class="theme-btn" style="background: #fff;" onclick="setTheme('white')"></div>
+        <div class="theme-btn" style="background: #FFC0CB;" onclick="setTheme('pink')"></div>
+        <div class="theme-btn" style="background: #7FFFD4;" onclick="setTheme('aqua')"></div>
+        <div class="theme-btn" style="background: gold;" onclick="setTheme('royal')"></div>
+    </div>
+
+    <script>
+        // 🚀 SERVICE WORKER REGISTRATION
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Sagar Clock Service Worker Registered!'))
+                    .catch(err => console.error('SW Registration Failed:', err));
+            });
+        }
+
+        const root = document.querySelector(':root');
+        
+        function setTheme(theme) {
+            if(navigator.vibrate) navigator.vibrate(30);
+            const dial = document.getElementById('clock-dial');
+            
+            switch(theme) {
+                case 'white':
+                    dial.style.background = "radial-gradient(circle, #ffffff, #d1d1d1)";
+                    document.body.style.backgroundColor = "#e8e8e8";
+                    root.style.setProperty('--roman-color', '#333');
+                    root.style.setProperty('--hour-color', '#000');
+                    root.style.setProperty('--charcoal', '#000');
+                    break;
+                case 'pink':
+                    dial.style.background = "radial-gradient(circle, #FFC0CB, #ff8da1)";
+                    document.body.style.backgroundColor = "#fff0f5";
+                    root.style.setProperty('--roman-color', '#fff');
+                    root.style.setProperty('--hour-color', '#702963');
+                    root.style.setProperty('--charcoal', '#702963');
+                    break;
+                case 'aqua':
+                    dial.style.background = "radial-gradient(circle, #7FFFD4, #45cea2)";
+                    document.body.style.backgroundColor = "#f0ffff";
+                    root.style.setProperty('--roman-color', '#004c4c');
+                    root.style.setProperty('--hour-color', '#000080');
+                    root.style.setProperty('--charcoal', '#004c4c');
+                    break;
+                case 'royal':
+                    dial.style.background = "radial-gradient(circle, #FFD700, #b8860b)";
+                    document.body.style.backgroundColor = "#ffffff";
+                    root.style.setProperty('--roman-color', '#E0E0E0');
+                    root.style.setProperty('--hour-color', '#111');
+                    root.style.setProperty('--charcoal', '#1a1a1a');
+                    break;
+            }
+        }
+
+        const romans = ["XII", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
+        const container = document.getElementById('roman-container');
+        for (let i = 0; i < 12; i++) {
+            let div = document.createElement('div');
+            div.className = 'roman-number';
+            div.style.transform = `rotate(${i * 30}deg)`;
+            div.innerHTML = `<span style="display:inline-block; transform:rotate(-${i * 30}deg)">${romans[i]}</span>`;
+            container.appendChild(div);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const istOffset = 5.5 * 60 * 60 * 1000; 
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const istTime = new Date(utc + istOffset);
+            
+            let h = istTime.getHours();
+            const m = istTime.getMinutes();
+            const s = istTime.getSeconds();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+
+            let displayH = h % 12;
+            displayH = displayH ? displayH : 12;
+
+            document.getElementById('second').style.transform = `translateX(-50%) rotate(${s * 6}deg)`;
+            document.getElementById('minute').style.transform = `translateX(-50%) rotate(${m * 6 + s * 0.1}deg)`;
+            document.getElementById('hour').style.transform = `translateX(-50%) rotate(${(h % 12) * 30 + m * 0.5}deg)`;
+
+            const hh = displayH < 10 ? "0" + displayH : displayH;
+            const mm = m < 10 ? "0" + m : m;
+            const ss = s < 10 ? "0" + s : s;
+            document.getElementById('digital-time').innerText = `${hh}:${mm}:${ss} ${ampm}`;
+
+            const options = { weekday: 'short', day: 'numeric', month: 'short' };
+            document.getElementById('date-display').innerText = istTime.toLocaleDateString('en-IN', options).toUpperCase();
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
